@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -e
+
+if [ "$1" = "--debug" ]; then
+  export TFENV_DEBUG=1
+  shift
+fi
+
+if [ -n "$TFENV_DEBUG" ]; then
+  set -x
+fi
+
+if [ -z "${TFENV_ROOT}" ]; then
+  TFENV_ROOT="${HOME}/.tfenv"
+else
+  TFENV_ROOT="${TFENV_ROOT%/}"
+fi
+export TFENV_ROOT
+tf_version_file="${TFENV_ROOT}/version"
+
+if [ -z "${TF_EXEC}" ]; then
+    if [ ! -f "${tf_version_file}" ]; then
+        echo "terraform version not found: ${tf_version_file}"
+        exit 1
+    fi
+    TF_EXEC=$(cat "$tf_version_file")
+    export TF_EXEC
+fi
+${TF_EXEC} $*

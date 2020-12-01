@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -e
+
+if [ "$1" = "--debug" ]; then
+  export TFENV_DEBUG=1
+  shift
+fi
+
+if [ -n "$TFENV_DEBUG" ]; then
+  set -x
+fi
+
+usage () {
+    sed -e 's/^//' <<End
+Usage: tfenv [-l]
+-h show help
+-l list terraform versions
+-g use version globablly
+End
+    exit 1
+}
+
+abort() {
+    echo "tfenv: $*"
+    exit 1
+}
+
+init() {
+    PATH="$PATH:${TFENV_ROOT}/bin"
+    echo "export PATH=$PATH"
+}
+
+list_tf_versions() {
+    if [ ! -d "${tf_version_dir}" ]; then
+        abort "tfenv versions directory not found: ${tf_version_dir}"
+    fi
+    ls -1 ${tf_version_dir} | sed 's/\<terraform\>-//g'
+}
+
+write_version() {
+    echo "${TFENV_ROOT}/versions/$1" > "${tf_version}"
+}
+
+use_version() {
+    local version="terraform-$1"
+    if [ ! -x "$tf_version_dir/${version}" ]; then
+        abort "terraform version ${version} not found"
+    fi
+    write_version $version
+}
+
+local_version() {
+    local version="terraform-$1"
+    if [ ! -x "$tf_version_dir/${version}" ]; then
+        abort "terraform version ${version} not found"
+    fi
+    echo "export TF_EXEC=${tf_version_dir}/${version}"
+}
+
+show_version() {
+    if [ ! -f "${tf_version}" ]; then
+        abort "tfenv version not found: ${tf_version}"
+    fi
+    cat "${tf_version}"
+}
+
+if [ -z "${TFENV_ROOT}" ]; then
+  TFENV_ROOT="${HOME}/.tfenv"
+else
+  TFENV_ROOT="${TFENV_ROOT%/}"
+fi
+export TFENV_ROOT
+
+tf_version_dir="${TFENV_ROOT}/versions"
+tf_version="${TFENV_ROOT}/version"
+
+
+if [ "$#" -eq 0 ]; then
+    usage
+fi
+
+while getopts ilg:s:v opt
+do case "$opt" in
+    i) init;;
+    l) list_tf_versions;;
+    g) 
+        use_version "$OPTARG";;
+    h) usage;;
+    s) local_version "$OPTARG";;
+    v) show_version;;
+    \?) usage;;
+    esac
+done
