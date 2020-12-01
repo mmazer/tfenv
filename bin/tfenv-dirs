@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+if [ -z "${TFENV_ROOT}" ]; then
+  TFENV_ROOT="${HOME}/.tfenv"
+else
+  TFENV_ROOT="${TFENV_ROOT%/}"
+fi
+export TFENV_ROOT
+
+if [ -z "${TFENV_DATA_HOME}" ]; then
+  TFENV_DATA_HOME="${XDG_DATA_HOME:=$HOME/.local/share}/tfenv"
+else
+  TFENV_DATA_HOME="${TFENV_DATA_HOME%/}"
+fi
+mkdir -p "${TFENV_DATA_HOME}"
+export TFENV_DATA_HOME

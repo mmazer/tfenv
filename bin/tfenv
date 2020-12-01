@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+DIR="$(dirname "$(readlink -f "$0")")"
+
 if [ "$1" = "--debug" ]; then
   export TFENV_DEBUG=1
   shift
@@ -14,8 +16,11 @@ usage () {
     sed -e 's/^//' <<End
 Usage: tfenv [-l]
 -h show help
+-i init shell for tfenv use
 -l list terraform versions
 -g use version globablly
+-s set local shell version
+-v show global version
 End
     exit 1
 }
@@ -38,7 +43,7 @@ list_tf_versions() {
 }
 
 write_version() {
-    echo "${TFENV_ROOT}/versions/$1" > "${tf_version}"
+    echo "${tf_version_dir}/$1" > "${tf_version}"
 }
 
 use_version() {
@@ -64,27 +69,21 @@ show_version() {
     cat "${tf_version}"
 }
 
-if [ -z "${TFENV_ROOT}" ]; then
-  TFENV_ROOT="${HOME}/.tfenv"
-else
-  TFENV_ROOT="${TFENV_ROOT%/}"
-fi
-export TFENV_ROOT
+. "${DIR}/tfenv-dirs"
 
-tf_version_dir="${TFENV_ROOT}/versions"
-tf_version="${TFENV_ROOT}/version"
+tf_version_dir="${TFENV_DATA_HOME}/versions"
+tf_version="${TFENV_DATA_HOME}/version"
 
 
 if [ "$#" -eq 0 ]; then
     usage
 fi
 
-while getopts ilg:s:v opt
+while getopts hilg:s:v opt
 do case "$opt" in
     i) init;;
     l) list_tf_versions;;
-    g) 
-        use_version "$OPTARG";;
+    g) use_version "$OPTARG";;
     h) usage;;
     s) local_version "$OPTARG";;
     v) show_version;;
