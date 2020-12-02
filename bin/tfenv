@@ -16,6 +16,7 @@ usage () {
     sed -e 's/^//' <<End
 Usage: tfenv [-l]
 -h show help
+-c show tfenv configuration
 -i init shell for tfenv use
 -l list terraform versions
 -g use version globablly
@@ -46,7 +47,7 @@ write_version() {
     echo "${tf_version_dir}/$1" > "${tf_version}"
 }
 
-use_version() {
+global_version() {
     local version="terraform-$1"
     if [ ! -x "$tf_version_dir/${version}" ]; then
         abort "terraform version ${version} not found"
@@ -54,7 +55,7 @@ use_version() {
     write_version $version
 }
 
-local_version() {
+use_version() {
     local version="terraform-$1"
     if [ ! -x "$tf_version_dir/${version}" ]; then
         abort "terraform version ${version} not found"
@@ -69,6 +70,13 @@ show_version() {
     cat "${tf_version}"
 }
 
+config() {
+    echo "TFENV_ROOT=${TFENV_ROOT}"
+    echo "TF_EXEC=${TF_EXEC}"
+    echo "TF_VERSION_DIR=${tf_version_dir}"
+    echo "TF_VERSION_FILE=${tf_version}"
+}
+
 . "${DIR}/tfenv-dirs"
 
 tf_version_dir="${TFENV_DATA_HOME}/versions"
@@ -79,13 +87,14 @@ if [ "$#" -eq 0 ]; then
     usage
 fi
 
-while getopts hilg:s:v opt
+while getopts hcilg:u:v opt
 do case "$opt" in
     i) init;;
     l) list_tf_versions;;
-    g) use_version "$OPTARG";;
+    c) config;;
+    g) global_version "$OPTARG";;
     h) usage;;
-    s) local_version "$OPTARG";;
+    u) use_version "$OPTARG";;
     v) show_version;;
     \?) usage;;
     esac
