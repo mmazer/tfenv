@@ -20,7 +20,7 @@ Usage: tfenv [-l]
 -i init shell for tfenv use
 -l list terraform versions
 -g use version globablly
--s set local shell version
+-u set local shell version
 -v show global version
 End
     exit 1
